@@ -29,17 +29,24 @@ module Bank where
   withNewTransaction :: Bank -> Bank
   withNewTransaction (Bank i j a b) = Bank i (j+1) a b
 
+  performedBy :: AccountId -> Transaction -> Bool
+  performedBy i (Deposit _ i' _) = i == getId i'
+  performedBy i (Withdrawal _ i' _) = i == getId i'
+  performedBy i (Transfer _ i' i'' _) = i == getId i' || i == getId i''
+  performedBy _ _ = False
+
   getCompletedTransactions :: AccountId -> Bank -> [Transaction]
   getCompletedTransactions id_ b = txns
     where txns' = transactions b
           completed' = completed txns'
           txns = filter (performedBy id_) completed'
-          performedBy :: AccountId -> Transaction -> Bool
-          performedBy i (Deposit _ i' _) = i == getId i'
-          performedBy i (Withdrawal _ i' _) = i == getId i'
-          performedBy i (Transfer _ i' i'' _) = i == getId i' || i == getId i''
-          performedBy _ _ = False
 
+  getInvalidTransactions :: AccountId -> Bank -> [Transaction]
+  getInvalidTransactions id_ b = txns
+    where txns' = transactions b
+          invalid'= invalid txns'
+          txns = filter (performedBy id_) invalid'
+          
   addAccount :: Account -> Bank -> Bank
   addAccount a bank = withAccounts (a : accounts bank) bank
 

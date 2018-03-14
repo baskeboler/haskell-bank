@@ -33,9 +33,14 @@ evalCommand (TransferCmd from_ to_ amount) bank = (show acc, bank')
           maybe ("Failed", bank)
                 (\(t, b) -> ("OK", b))
                 (addTransfer from_ to_ amount bank)
-evalCommand (ShowTransactionsCmd id_) bank = (status, bank)
-  where status = unlines ("list of transactions" : map show txns)
+evalCommand (ShowTransactionsCmd id_) bank = (completed' ++ invalid', bank)
+  where completed' = unlines ("list of transactions" : map show txns)
         txns = getCompletedTransactions id_ bank
+        invalid = getInvalidTransactions id_ bank
+        invalid' = if not (null invalid)
+          then unlines ("" : "list of rejected transacions" : map show invalid)
+          else ""
+
 evalCommand AccountsCmd bank = (status, bank)
   where status = unlines $ map formatAccount $ accounts bank
         formatAccount (Account id_ name total) = show id_ ++ " - name: " ++ name ++ ", available: " ++ show total

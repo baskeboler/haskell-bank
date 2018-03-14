@@ -176,6 +176,10 @@ module Parser where
   quitCmd = do
     reserved "quit"
     return QuitCmd
+  accountsCmd :: Parser Command
+  accountsCmd = do
+    reserved "accounts"
+    return AccountsCmd
 
   commandParser :: Parser Command
   commandParser = createAccountCmd
@@ -184,3 +188,4 @@ module Parser where
     <|> transferCmd
     <|> showTransactionsCmd
     <|> quitCmd
+    <|> accountsCmd

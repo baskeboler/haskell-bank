@@ -8,7 +8,19 @@ module Transaction where
     Withdrawal TransactionId Account Double
     | Deposit TransactionId Account Double
     | Transfer TransactionId Account Account Double
-    deriving (Eq, Show)
+    deriving (Eq)
+
+  instance Show Transaction where
+    show (Withdrawal i a amount)  =
+      "[" ++ show i ++ "] [withdrawal] account: "
+        ++ show (getId a) ++ ", amount: " ++ show amount
+    show (Deposit i a amount)  =
+      "[" ++ show i ++ "] [deposit] account: "
+        ++ show (getId a) ++ ", amount: " ++ show amount
+    show (Transfer i a b amount)  =
+      "[" ++ show i ++ "] [transfer] from: "
+        ++ show (getId a) ++ ", to: " ++ show (getId b)
+        ++ ", amount: " ++ show amount
 
   data Transactions = Transactions {
     pending :: [Transaction],
@@ -28,7 +40,7 @@ module Transaction where
   nextPendingTransaction :: Transactions -> Maybe (Transaction, Transactions)
   nextPendingTransaction (Transactions [] _ _) = Nothing
   nextPendingTransaction (Transactions (x:xs) c i) = Just (x, Transactions xs c i)
-  
+
 
   newTransactions :: Transactions
   newTransactions = Transactions [] [] []

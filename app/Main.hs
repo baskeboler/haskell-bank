@@ -8,6 +8,10 @@ import System.IO
 
 main :: IO ()
 main = do
+  putStrLn "Welcome to bank-app"
+  putStrLn "-------------------"
+  putStrLn "List of commands: "
+  putStrLn $ unlines commands
   b <- loop testBank
   return ()
 
@@ -23,7 +27,7 @@ loop b = do
   l <- getLine
   c <- doRun l
   (res, bank') <- doEvalCommand c b
-  bank'' <- return (performPending bank')
+  let bank''= performPending bank'
   printResult (res, bank'')
   if shouldExit c
     then return bank''
@@ -35,8 +39,6 @@ shouldExit _ = False
 
 printResult ::  (String, Bank) -> IO()
 printResult (s, b) = do
-  putStr "Bank: "
-  putStrLn $ show b
-  putStr "Result: "
+  putStrLn "Result: "
   putStrLn s
   return ()

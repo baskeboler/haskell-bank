@@ -25,6 +25,7 @@ dependencies:
 - text
 - datetime
 - haskeline
+- transformers
 
 library:
   source-dirs: src

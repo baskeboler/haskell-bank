@@ -3,6 +3,7 @@ module Parser where
   import           Control.Monad
   import           Data.Char
   import Command
+  import System.Console.Haskeline
 
   newtype Parser a = Parser { parse :: String -> [(a, String)] }
 
@@ -22,7 +23,7 @@ module Parser where
   run :: String -> Maybe Command
   run = tryParser commandParser
 
-  doRun :: String -> IO (Maybe Command)
+  doRun :: String -> InputT IO (Maybe Command)
   doRun s = return $ run s
 
   bind :: Parser a -> (a -> Parser b) -> Parser b
@@ -61,9 +62,9 @@ module Parser where
 
   characterItem :: Parser Char
   characterItem = Parser $ \s ->
-    case s of
-      []     -> []
-      (c:cs) -> [(c, cs)]
+      case s of
+          []     -> []
+          (c:cs) -> [(c, cs)]
 
   satisfy :: (Char -> Bool) -> Parser Char
   satisfy p = characterItem `bind` \c ->

@@ -39,7 +39,7 @@ module Bank where
   performedBy i (Deposit _ i' _) = i == getId i'
   performedBy i (Withdrawal _ i' _) = i == getId i'
   performedBy i (Transfer _ i' i'' _) = i == getId i' || i == getId i''
-  performedBy _ _ = False
+  -- performedBy _ _ = False
 
   getCompletedTransactions :: AccountId -> Bank -> [Transaction]
   getCompletedTransactions id_ b = txns
@@ -52,7 +52,7 @@ module Bank where
     where txns' = transactions b
           invalid'= invalid txns'
           txns = filter (performedBy id_) invalid'
-          
+
   addAccount :: Account -> Bank -> Bank
   addAccount a bank = withAccounts (a : accounts bank) bank
 
@@ -66,7 +66,7 @@ module Bank where
 
   getAccount :: AccountId -> Bank -> Maybe Account
   getAccount id_ bank = find' id_ $ accounts bank
-    where find' i [] = Nothing
+    where find' _ [] = Nothing
           find' i (a@(Account i' _ _):xs) =
             if i == i'
               then Just a
@@ -79,11 +79,11 @@ module Bank where
       else a) (accounts bank)) bank
 
   addTransaction :: Transaction -> Bank -> Maybe Bank
-  addTransaction t@(Deposit _ acc n) b =
+  addTransaction t@(Deposit _ acc _) b =
     getAccount (getId acc) b >> return (withTransactions (addPending t (transactions b)) b)
-  addTransaction t@(Withdrawal _ acc n) b =
+  addTransaction t@(Withdrawal _ acc _) b =
     getAccount (getId acc) b >> return (withTransactions (addPending t (transactions b)) b)
-  addTransaction t@(Transfer _ from to n) b =
+  addTransaction t@(Transfer _ from to _) b =
     getAccount (getId from) b
       >> getAccount (getId to) b
       >> return (withTransactions (addPending t (transactions b)) b)
@@ -115,14 +115,15 @@ module Bank where
   performTransaction t bank = performTransaction' t bank
     >>= \b -> return (recordTransaction t b)
 
-  performTransaction' t@(Deposit _ acc n) bank =
+  performTransaction' :: Transaction -> Bank -> Maybe Bank
+  performTransaction' (Deposit _ acc n) bank =
     getAccount (getId acc) bank
       >>= \a -> ((\a' -> return (updateAccount a' bank)) (deposit a n))
-  performTransaction' t@(Withdrawal _ acc n) bank =
+  performTransaction' (Withdrawal _ acc n) bank =
     getAccount (getId acc) bank
       >>= \a -> withdraw a n
       >>= \a' -> return (updateAccount a' bank)
-  performTransaction' t@(Transfer _ from to n) bank =
+  performTransaction' (Transfer _ from to n) bank =
     getAccount (getId from) bank
       >>= \a -> withdraw a n
       >>= \a'-> return (a', deposit to n)

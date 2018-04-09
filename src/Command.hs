@@ -3,6 +3,7 @@ import Bank
 import Account
 import Data.Maybe
 import Control.Monad
+import System.Console.Haskeline
 
 data Command =
   CreateAccountCmd String
@@ -55,6 +56,6 @@ commands = ["create account <name> - creates a new account",
   "accounts - lists all accounts",
   "quit - quits the application"]
 
-doEvalCommand :: Maybe Command -> Bank -> IO(String, Bank)
+doEvalCommand :: Maybe Command -> Bank -> InputT IO(String, Bank)
 doEvalCommand Nothing bank = return (unlines commands, bank)
 doEvalCommand (Just c) b = return $ evalCommand c b

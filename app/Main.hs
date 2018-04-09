@@ -1,10 +1,10 @@
 module Main where
 
-import Lib
 import Parser
 import Command
 import Bank
 import System.IO
+import Database
 
 main :: IO ()
 main = do
@@ -12,7 +12,9 @@ main = do
   putStrLn "-------------------"
   putStrLn "List of commands: "
   putStrLn $ unlines commands
-  b <- loop testBank
+  a <- loadBank
+  b <- loop a
+  saveBank b
   return ()
 
 prompt :: IO ()

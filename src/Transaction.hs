@@ -44,3 +44,21 @@ module Transaction where
 
   newTransactions :: Transactions
   newTransactions = Transactions [] [] []
+
+  newTransactions_ :: [Transaction] -> [Transaction] -> [Transaction] -> Transactions
+  newTransactions_ a b c = Transactions a b c
+
+  filterWithdrawals :: Transactions -> [Transaction]
+  filterWithdrawals txns = filter isWithdrawal (completed txns)
+     where isWithdrawal (Withdrawal _ _ _) = True
+           isWithdrawal _ = False
+
+  filterDeposits :: Transactions -> [Transaction]
+  filterDeposits txns = filter isDeposit (completed txns)
+     where isDeposit (Deposit _ _ _) = True
+           isDeposit _ = False
+
+  filterTransfers :: Transactions -> [Transaction]
+  filterTransfers txns = filter isTransfer (completed txns)
+     where isTransfer (Transfer _ _ _ _) = True
+           isTransfer _ = False

@@ -17,6 +17,12 @@ module Bank where
   newBank :: Bank
   newBank = Bank 0 0 [] newTransactions
 
+  withNextAccountId :: AccountId -> Bank -> Bank
+  withNextAccountId _id (Bank _ j accs txns) = Bank _id j accs txns
+
+  withNextTransationId :: TransactionId -> Bank -> Bank
+  withNextTransationId _id (Bank i _ accs txns) = Bank i _id accs txns
+
   withAccounts :: [Account] -> Bank -> Bank
   withAccounts accs (Bank i j _ txns) = Bank i j accs txns
 

@@ -112,9 +112,9 @@ module Bank where
     return (t, withTransactions (addPending t (transactions bank')) bank')
 
   performTransaction :: Transaction -> Bank -> Maybe Bank
-  performTransaction t bank = performTransaction' t bank
+  performTransaction t bank = performTransaction2 t bank
     >>= \b -> return (recordTransaction t b)
-
+{-
   performTransaction' :: Transaction -> Bank -> Maybe Bank
   performTransaction' (Deposit _ acc n) bank =
     getAccount (getId acc) bank
@@ -128,6 +128,24 @@ module Bank where
       >>= \a -> withdraw a n
       >>= \a'-> return (a', deposit to n)
       >>= \(a'', b) -> return (updateAccount a'' (updateAccount b bank))
+-}
+
+  performTransaction2 :: Transaction -> Bank -> Maybe Bank
+  performTransaction2 (Deposit _ acc n) bank = do
+    a <- getAccount (getId acc) bank
+    let a' = deposit a n
+    return $ updateAccount a' bank
+  performTransaction2 (Withdrawal _ acc n) bank = do
+    a <- getAccount (getId acc) bank
+    a' <- withdraw a n
+    return $ updateAccount a' bank
+  performTransaction2 (Transfer _ from to n) bank = do
+    fromAccount <- getAccount (getId from) bank
+    fromAccount' <- withdraw fromAccount n
+    toAccount <- getAccount (getId to) bank
+    let toAccount' = deposit toAccount n
+    return $ updateAccount fromAccount' $ updateAccount toAccount' bank
+
 
   performPending :: Bank -> Bank
   performPending bank = fromMaybe bank maybeBank

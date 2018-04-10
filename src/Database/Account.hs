@@ -25,8 +25,11 @@ createAccountsTable = "CREATE TABLE IF NOT EXISTS accounts(id integer primary ke
 dropAccountsTable :: Query
 dropAccountsTable = "drop table accounts"
 
-insertAccount :: Query
-insertAccount = "insert into accounts(id, name, balance) values (?, ?, ?)"
+insertAccountQuery :: Query
+insertAccountQuery = "insert into accounts(id, name, balance) values (?, ?, ?)"
+
+updateAccountQuery :: Query
+updateAccountQuery = "update accounts set (name, balance) = (:name, :balance) where id = :id"
 
 selectAccounts :: Query
 selectAccounts = "select * from accounts"
@@ -53,11 +56,28 @@ clearAccounts = do
   execute_ conn "delete from accounts"
   close conn
 
-saveAccounts :: [Account] -> IO()
-saveAccounts accounts' = do
-  clearAccounts
+updateOrCreateAccount :: Account -> IO()
+updateOrCreateAccount acc = do
+  maybeAccount <- getAccount $ getId acc
+  case maybeAccount of
+    Just account' -> updateAccount acc
+    Nothing -> insertAccount acc
+  return ()
+
+updateAccount :: Account -> IO()
+updateAccount (Account _id _name _balance) = do
   conn <- open dbFile
-  executeMany conn insertAccount $ map fromAccount accounts'
+  executeNamed conn updateAccountQuery
+    [":name" := T.pack _name, ":balance" := _balance, ":id" := _id ]
   close conn
 
+insertAccount :: Account -> IO()
+insertAccount account' = do
+  putStrLn $ "Saving account'" ++ show account'
+  conn <- open dbFile
+  execute conn insertAccountQuery $ fromAccount account'
+  close conn
+
+saveAccounts :: [Account] -> IO()
+saveAccounts  = mapM_ updateOrCreateAccount 
 

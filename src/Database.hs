@@ -2,6 +2,7 @@
 module Database where
 
 import           Bank
+import           Data.List                       (sortOn)
 import           Database.Account
 import           Database.Config
 import           Database.SQLite.Simple
@@ -36,8 +37,8 @@ dropTables = do
 loadBank :: IO Bank
 loadBank = do
   conn <- open dbFile
-  [[lastTxnId]]  <- query_ conn "select max(id) + 1 from transactions" :: IO [[Int]]
-  [[lastAccountId]] <- query_ conn "select max(id) + 1 from accounts" :: IO [[Int]]
+  [[lastTxnId]]  <- query_ conn "select case when max(id) is NULL then 1 else max(id) + 1 end from transactions" :: IO [[Int]]
+  [[lastAccountId]] <- query_ conn "select case when max(id) is null then  1 else max(id) + 1 end from accounts" :: IO [[Int]]
   close conn
   accounts' <- loadAccountsFromDb
   let b = withNextTransationId lastTxnId $
@@ -46,7 +47,7 @@ loadBank = do
   withdrawals' <- loadWithdrawalsFromDb b
   deposits' <- loadDepositsFromDb b
   transfers' <- loadTransfersFromDb b
-  let b' = withTransactions (newTransactions_ [] ( withdrawals'++deposits'++transfers') []) b
+  let b' = withTransactions (newTransactions_ [] (sortOn transactionId (withdrawals'++deposits'++transfers')) []) b
   return b'
 
 saveBank :: Bank -> IO()
@@ -64,6 +65,7 @@ saveBank bank = do
   saveDeposits deps
   let trxs = filterTransfers (transactions bank)
   saveTransfers trxs
+  saveAccounts (accounts bank)
 
 saveTransaction :: Transaction -> IO()
 saveTransaction txn@Deposit{}    = saveDeposit txn

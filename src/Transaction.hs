@@ -3,6 +3,8 @@ module Transaction where
 
   type TransactionId = Int
 
+  class TransactionWithId trx where
+    transactionId :: trx -> TransactionId
 
   data Transaction =
     Withdrawal TransactionId Account Double
@@ -21,6 +23,11 @@ module Transaction where
       "[" ++ show i ++ "] [transfer] from: "
         ++ show (getId a) ++ ", to: " ++ show (getId b)
         ++ ", amount: " ++ show amount
+
+  instance TransactionWithId Transaction where
+    transactionId (Withdrawal _id _ _) = _id
+    transactionId (Deposit _id _ _) = _id
+    transactionId (Transfer _id _ _ _) = _id
 
   data Transactions = Transactions {
     pending :: [Transaction],

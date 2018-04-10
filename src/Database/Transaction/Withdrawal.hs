@@ -29,7 +29,7 @@ fromWithdrawal (Withdrawal _id (Account _accountId _ _) amount) =
 fromWithdrawal _ = error "not a withdrawal"
 
 createWithdrawalsTable :: Query
-createWithdrawalsTable = "create table if not exists withdrawals (id integer primary key, account_id integer not null, amount real not null default 0.0, foreign key (id) references transactions(id), foreign key(account_id) references accounts (id))"
+createWithdrawalsTable = "create table if not exists withdrawals (id integer primary key, account_id integer not null, amount real not null default 0.0, foreign key (id) references transactions(id) on delete cascade, foreign key(account_id) references accounts (id))"
 
 dropWithdrawalsTable :: Query
 dropWithdrawalsTable = "drop table withdrawals"

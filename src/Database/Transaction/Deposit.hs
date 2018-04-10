@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+
 module Database.Transaction.Deposit where
 import Database.SQLite.Simple
 import Bank
@@ -30,7 +32,7 @@ fromDeposit _ = error "not a deposit"
 
 
 createDepositsTable :: Query
-createDepositsTable = "create table if not exists deposits (id integer primary key, account_id integer not null, amount real not null default 0.0, foreign key (id) references transactions(id), foreign key(account_id) references accounts (id))"
+createDepositsTable = "create table if not exists deposits (id integer primary key, account_id integer not null, amount real not null default 0.0, foreign key (id) references transactions(id) on delete cascade, foreign key(account_id) references accounts (id))"
 
 
 dropDepositsTable :: Query
@@ -54,8 +56,9 @@ loadDepositsFromDb bank = do
 saveDeposit :: Transaction -> IO()
 saveDeposit  txn@(Deposit _id _ _) = do
   conn <- open dbFile
-  insertTransaction conn _id
-  execute conn insertDepositQuery $ fromDeposit txn
+  withTransaction conn $ do
+    insertTransaction conn _id
+    execute conn insertDepositQuery $ fromDeposit txn
   close conn
 saveDeposit _ = error "not a deposit"
 

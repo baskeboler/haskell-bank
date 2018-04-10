@@ -31,7 +31,7 @@ fromTransfer _ = error "not a transfer"
 
 
 createTransfersTable :: Query
-createTransfersTable = "create table if not exists transfers (id integer primary key, account_from_id integer not null, account_to_id integer not null, amount real not null default 0.0, foreign key (id) references transactions(id), foreign key(account_from_id) references accounts (id), foreign key(account_to_id) references accounts(id))"
+createTransfersTable = "create table if not exists transfers (id integer primary key, account_from_id integer not null, account_to_id integer not null, amount real not null default 0.0, foreign key (id) references transactions(id) on delete cascade, foreign key(account_from_id) references accounts (id), foreign key(account_to_id) references accounts(id))"
 
 
 dropTransfersTable :: Query
@@ -55,8 +55,9 @@ loadTransfersFromDb bank = do
 saveTransfer :: Transaction -> IO()
 saveTransfer  txn@(Transfer _id _ _ _) = do
   conn <- open dbFile
-  insertTransaction conn _id
-  execute conn insertTransferQuery $ fromTransfer txn
+  withTransaction conn $ do
+    insertTransaction conn _id
+    execute conn insertTransferQuery $ fromTransfer txn
   close conn
 saveTransfer _ = error "not a transfer"
 
